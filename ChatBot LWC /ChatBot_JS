@@ -1,0 +1,58 @@
+import { LightningElement, track } from 'lwc';
+import getResponse from '@salesforce/apex/ChatbotController.getResponse';
+
+export default class ChatBot extends LightningElement {
+    @track messages = [];
+    @track isLoading = false;
+    userMessage = '';
+    conversationHistory = [];
+
+    handleInputChange(event) {
+        this.userMessage = event.target.value;
+    }
+
+    handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            this.sendMessage();
+        }
+    }
+
+    sendMessage() {    
+        if (this.userMessage.trim()) {
+            let userMessageRes = this.userMessage;
+            this.messages = [...this.messages, { id: this.messages.length, text: this.userMessage, class: 'user-message' }];
+            this.conversationHistory.push({ role: "user", content: this.userMessage });
+            this.userMessage = '';
+            this.isLoading = true;
+
+            this.scrollToNewMessage();
+
+            getResponse({ question: userMessageRes, history: JSON.stringify(this.conversationHistory) })
+                .then(result => {
+                    this.messages = [...this.messages, { id: this.messages.length, html: result, class: 'bot-message' }];
+                    this.conversationHistory.push({ role: "assistant", content: result });
+                    this.scrollToNewMessage();
+                })
+                .catch(error => {
+                    console.error('Error in getting response:', error);
+                    this.messages = [...this.messages, { id: this.messages.length, text: 'Sorry, there was an error processing your request.', class: 'bot-message' }];
+                    this.scrollToNewMessage();
+                })
+                .finally(() => {
+                    this.isLoading = false;
+                });
+        }
+    }
+
+    scrollToNewMessage() {
+        setTimeout(() => {
+            const chatWindow = this.template.querySelector('.chat-window');
+            const messages = chatWindow.querySelectorAll('.bot-message, .user-message');
+            if (messages.length > 0) {
+                const lastMessage = messages[messages.length - 1];
+                const scrollPosition = lastMessage.offsetTop - chatWindow.offsetTop;
+                chatWindow.scrollTop = scrollPosition;
+            }
+        }, 0);
+    }
+}
