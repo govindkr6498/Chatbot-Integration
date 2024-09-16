@@ -1,0 +1,36 @@
+<template>
+    <lightning-card title="Service Assistant" icon-name="custom:custom63">
+        <div class="slds-p-around_medium">
+            <div class="chat-window slds-scrollable_y">
+                <template for:each={messages} for:item="msg">
+                    <div key={msg.id} class={msg.class}>
+                        <p class="slds-text-body_regular">
+                            <template if:true={msg.html}>
+                                <lightning-formatted-rich-text value={msg.html}></lightning-formatted-rich-text>
+                            </template>
+                            <template if:false={msg.html}>
+                                <lightning-formatted-text value={msg.text}></lightning-formatted-text>
+                            </template>
+                        </p>
+                    </div>
+                </template>
+                <div if:true={isLoading} class="bot-message loading-message">
+                    <div class="slds-is-relative">
+                        <lightning-spinner alternative-text="Loading" size="x-small" variant="brand">
+                        </lightning-spinner>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-grid slds-gutters slds-m-top_medium">
+                <div class="slds-col slds-size_11-of-12">
+                    <lightning-input class="chat-input" type="text" label="Type a message" variant="label-hidden"
+                        value={userMessage} onchange={handleInputChange} onkeypress={handleKeyPress}
+                        placeholder="Type a message..."></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-12 slds-align-bottom">
+                    <lightning-button label="Send" onclick={sendMessage} variant="brand"></lightning-button>
+                </div>
+            </div>
+        </div>
+    </lightning-card>
+</template>
