@@ -1,0 +1,32 @@
+public class ChatbotController {
+    @AuraEnabled(cacheable = false)
+    public static String getResponse(String question, String history){
+        string endPoint = 'https://dev-orig.alvis-ai.com:31321/rasa/query/';
+        
+        Map<String, Object> requestBody = new Map<String, Object>{
+            'agent_name' => 'Salesforce_Agent',
+            'history' => (List<Object>)JSON.deserializeUntyped(history),
+            'query' => question
+        };
+        
+        String body = JSON.serialize(requestBody);
+        
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint(endPoint);                    
+        req.setMethod('POST'); 
+        req.setBody(body); 
+        req.setHeader('Content-Type','application/json');
+        req.setTimeout(120000); //120 sec
+        Http http = new Http();
+        HttpResponse response = http.send(req);
+        String responseBody = response.getBody();
+        Map<String, Object> jsonData = (Map<String, Object>) JSON.deserializeUntyped(responseBody);
+        String data = (String) jsonData.get('data');
+        System.debug('data : '+data);
+        if(response.getstatusCode() == 200){
+             return data;
+        }else{
+            return null;
+        }      
+    }
+}
